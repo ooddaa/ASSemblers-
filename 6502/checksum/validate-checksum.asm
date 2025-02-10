@@ -1,52 +1,59 @@
-; store bytes to validate 
-LDA #$06
-STA $00
+START:  
+  ; store bytes to validate 
+  LDA #$06
+  STA $00
 
-LDA #$05
-STA $01
+  LDA #$05
+  STA $01
 
-LDA #$00
-STA $02
+  LDA #$00
+  STA $02
 
-LDA #$02
-STA $03
+  LDA #$02
+  STA $03
 
-LDA #$F3 ; checksum
-STA $04
+  LDA #$F3 ; checksum
+  STA $04
 
-; storing the address of the data array in $10-11
-LDA #$00
-STA $10
-STA $11  ; $1011 now points to $0000
+  ; storing the address of the data array in $10-11
+  LDA #$00
+  STA $10
+  STA $11  ; $1011 now points to $0000
 
-LDX #$05 ; array length
+  LDX #$05 ; array length
 
-; copy array length to decrement
-TXA
-TAY
+  JSR VALIDATE_CHECKSUM  
+  BRK
 
-; set up the loop
-LDA #$00
-DEY
+VALIDATE_CHECKSUM:  
+  ; copy array length to decrement
+  TXA
+  TAY
 
-; start looping
-LOOP:
-CLC
-ADC ($10), Y
-DEY
-BPL LOOP
+  ; set up the loop
+  LDA #$00
+  DEY
 
-; A now holds the data + checksum. If checksum was 
-; valid, A holds #$00
-CMP #$00
-BNE ERROR
+  ; start looping
+  LOOP:
+    CLC
+    ADC ($10), Y
+    DEY
+    BPL LOOP
 
-; here sum is 0, Z=1 and checksum is valid 
+  ; A now holds the data + checksum. If checksum was 
+  ; valid, A holds #$00
+  CMP #$00
+  BNE ERROR
 
-LDA #$01
-JMP DONE
+  ; here sum is 0, Z=1 and checksum is valid 
 
-ERROR:
-LDA #$00
+  LDA #$01
+  JMP DONE
 
-DONE:
+  ERROR:
+    LDA #$00
+
+  DONE:
+    RTS
+
